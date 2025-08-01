@@ -87,13 +87,12 @@ def Cube():
     glBegin(GL_QUADS)
     for i, surface in enumerate(surfaces):
         glColor3f(RED[0], RED[1], RED[2])
-
-    for vertex in surface:
-        glVertex3fv(vertices[vertex]) # coordenadas del vertice
+        for vertex in surface:
+            glVertex3fv(vertices[vertex]) # coordenadas del vertice
     glEnd()
 
 def main():
-    global rotation_x, rotation_y, current_face
+    global rotacion_x, rotacion_y, current_face
 
     pygame.init()
     display = (DISPLAY_WIDTH, DISPLAY_HEIGHT)
@@ -103,7 +102,17 @@ def main():
     # aspect: Relación de aspecto (ancho/alto de la ventana)
     # zNear: Plano de recorte cercano (objetos más cercanos que esto no se ven)
     # zFar: Plano de recorte lejano (objetos más lejanos que esto no se ven)
-    gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
+    #gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
+
+    glMatrixMode(GL_PROJECTION)
+    glLoadIdentity()
+
+    aspect_ratio = float(display[0]) / float(display[1])
+    glFrustum(-aspect_ratio, aspect_ratio, -1.0, 1.0, 2.0, 50.0)
+
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+
     # mueve la camara o los objetos
     glTranslate(0.0, 0.0, -5)
 
@@ -130,12 +139,12 @@ def main():
 
         lerp_factor = 0.1
 
-        rotation_x = rotation_x * (1 - lerp_factor) + target_rotation_x * lerp_factor
-        rotation_y = rotation_y * (1 - lerp_factor) + target_rotation_y * lerp_factor
+        rotacion_x = rotacion_x * (1 - lerp_factor) + target_rotation_x * lerp_factor
+        rotacion_y = rotacion_y * (1 - lerp_factor) + target_rotation_y * lerp_factor
 
         glPushMatrix()
-        glRotate(rotation_x, 1, 0, 0)
-        glRotate(rotation_y, 0, 1, 0)
+        glRotate(rotacion_x, 1, 0, 0)
+        glRotate(rotacion_y, 0, 1, 0)
 
         Cube()
 
