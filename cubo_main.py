@@ -127,15 +127,12 @@ def cargar_textura(filename):
         print(f"Error: {message}")
         return None
 
-    # Voltear la imagen verticalmente
     image_width, image_height = image.get_size()
     img_data = pygame.image.tostring(image, "RGBA", True)
 
-    # Generar ID de textura
     textura_id = glGenTextures(1)
     glBindTexture(GL_TEXTURE_2D, textura_id)
 
-    # Configurar parámetros de textura
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -148,7 +145,6 @@ def cargar_textura(filename):
 
 
 def crear_textura_color(color):
-    # Crear una textura de color sólido
     textura_id = glGenTextures(1)
     r, g, b = [int(c * 255) for c in color]
     pixel_data = bytes([r, g, b, 255])
