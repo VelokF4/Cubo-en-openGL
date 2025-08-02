@@ -83,6 +83,36 @@ tex_coords = [
 ]
 
 
+def cargar_audio(filename):
+    if not os.path.exists(filename):
+        print(f"Archivo de audio no encontrado: {filename}")
+        return False
+
+    try:
+        audio_sound = pygame.mixer.Sound(filename)
+        print(f"Audio [OK]: {filename}")
+        return audio_sound
+    except pygame.error as message:
+        print(f"No se pudo cargar el audio: {filename}")
+        print(f"Error: {message}")
+        return None
+
+def ajustar_velocidad_audio(sound, speed_factor):
+    if sound is None:
+        return None
+    try:
+        current_freq = pygame.mixer.get_init()[0] if pygame.mixer.get_init() else 22050
+        new_freq = int(current_freq * speed_factor)
+
+        new_freq = max(8000, min(48000, new_freq))
+
+        pygame.mixer.quit()
+        pygame.mixer.init(frequency=new_freq)
+
+        return pygame.mixer.Sound(sound.get_buffer())
+    except:
+        return sound
+
 def cargar_textura(filename):
     # Carga los archivos de texturas
     if not os.path.exists(filename):
@@ -118,7 +148,7 @@ def cargar_textura(filename):
 
 
 def crear_textura_color(color):
-    #Crear una textura de color sólido
+    # Crear una textura de color sólido
     textura_id = glGenTextures(1)
     r, g, b = [int(c * 255) for c in color]
     pixel_data = bytes([r, g, b, 255])
@@ -164,7 +194,7 @@ def main():
     pygame.init()
     display = (DISPLAY_WIDTH, DISPLAY_HEIGHT)
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-    pygame.display.set_caption("Cubo 3D con Texturas")
+    pygame.display.set_caption("Cubo 3D con Texturas y Audio")
 
     # Configurar proyección
     setup_projection(DISPLAY_WIDTH, DISPLAY_HEIGHT)
@@ -179,7 +209,15 @@ def main():
 
     glClearColor(0.3, 0.3, 0.3, 1.0)  # Fondo gris
 
-    # Cargar texturas
+    audio_file = "audio.wav"
+    audio_sound = cargar_audio(audio_file)
+    audio_channel = None
+
+    if audio_sound:
+        # Iniciar reproducción en bucle
+        audio_channel = audio_sound.play(-1)
+
+    # cargar texturas
     texturas_cargadas = 0
     for i, filename in enumerate(texture_files):
         texture_id = cargar_textura(filename)
@@ -187,24 +225,33 @@ def main():
             cube_textures.append(texture_id)
             texturas_cargadas += 1
         else:
-            # Crear textura de color sólido como fallback
-            # o debugging nose
+            # fallback para debuggin
             texture_id = crear_textura_color(face_colors[i])
             cube_textures.append(texture_id)
 
-    print(f"Texturas cargadas: {texturas_cargadas}/{len(texture_files)}")
+    print(f"* Textura [OK]: {texturas_cargadas}/{len(texture_files)}")
 
     clock = pygame.time.Clock()
     running = True
-    auto_rotate = False
+    auto_rotate = True
     rotation_angle = 0
+    rotation_speed = 1.0
 
     print("Controles:")
     print("- Flecha derecha: siguiente cara")
     print("- Flecha izquierda: cara anterior")
-    print("- R: rotar automáticamente")
-    print("- ESC: salir")
+    print("- R: detener")
+    print("- + / =: meterle segunda a la negativa(?????? ")
+    print("- - / _: metele segunda en la cajaaaaaaa")
+    print("- M: silenciar/activar música... (Porque querrias detenerla(? )")
+    print("- ESPACIO: pausar/continuar")
+    print("- ESC: hace cosas de escape")
 
+
+    # El cubo gira automáticamente esperando entrada del usuario
+    print("\nmira es el cubo de la perdicion (lmao)")
+
+    paused = False
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -213,45 +260,89 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 elif event.key == pygame.K_RIGHT:
+                    auto_rotate = False
                     current_face = (current_face + 1) % len(face_rotations)
-                    print(f"Mostrando cara: {current_face}")
+                    print(f"Rotación detenida - Mostrando cara: {current_face}")
                 elif event.key == pygame.K_LEFT:
+                    auto_rotate = False
                     current_face = (current_face - 1) % len(face_rotations)
                     if current_face < 0:
                         current_face = len(face_rotations) - 1
-                    print(f"Mostrando cara: {current_face}")
+                    print(f"Rotación detenida - Mostrando cara: {current_face}")
                 elif event.key == pygame.K_r:
                     auto_rotate = not auto_rotate
                     print(f"Rotación automática: {'activada' if auto_rotate else 'desactivada'}")
+                elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
+                    old_speed = rotation_speed
+                    rotation_speed = min(rotation_speed + 0.5, 5.0)
+                    print(f"METELE TERCERAAAAAAAAAAAAAAAAAAAAAAAA: {rotation_speed}")
 
-        # Limpiar pantalla
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+                    # Ajustar velocidad del audio
+                    if audio_sound and audio_channel:
+                        speed_factor = rotation_speed / old_speed
+                        audio_channel.stop()
+                        adjusted_sound = ajustar_velocidad_audio(audio_sound, speed_factor)
+                        if adjusted_sound:
+                            audio_channel = adjusted_sound.play(-1)
 
-        # Resetear transformaciones
-        glLoadIdentity()
+                elif event.key == pygame.K_MINUS or event.key == pygame.K_UNDERSCORE:
+                    old_speed = rotation_speed
+                    rotation_speed = max(rotation_speed - 0.5, 0.1)
+                    print(f"AAAAAAAAAAAAAAA PORQUE TAN LENTOOOOOOOOOOOo: {rotation_speed}")
 
-        if auto_rotate:
-            # Rotación automática continua
-            rotation_angle += 1
-            glRotatef(rotation_angle, 1, 1, 0)
-        else:
-            # Rotación basada en la cara actual
-            target_rotation_x, target_rotation_y = face_rotations[current_face]
-            lerp_factor = 0.1
+                    # Ajustar velocidad del audio
+                    if audio_sound and audio_channel:
+                        speed_factor = rotation_speed / old_speed
+                        audio_channel.stop()
+                        adjusted_sound = ajustar_velocidad_audio(audio_sound, speed_factor)
+                        if adjusted_sound:
+                            audio_channel = adjusted_sound.play(-1)
+                elif event.key == pygame.K_m:
+                    if audio_channel:
+                        if audio_channel.get_busy():
+                            audio_channel.pause()
+                            print("Audio pausado")
+                        else:
+                            audio_channel.unpause()
+                            print("Audio reanudado")
+                elif event.key == pygame.K_SPACE:
+                    paused = not paused
+                    print(f"{'Pausado' if paused else 'Reanudado'}")
+                else:
+                    # Cualquier otra tecla detiene la rotación
+                    if auto_rotate:
+                        auto_rotate = False
+                        print("Rotación detenida por entrada del usuario")
+        if not paused:
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-            rotacion_x = rotacion_x * (1 - lerp_factor) + target_rotation_x * lerp_factor
-            rotacion_y = rotacion_y * (1 - lerp_factor) + target_rotation_y * lerp_factor
+            glLoadIdentity()
 
-            glRotatef(rotacion_x, 1, 0, 0)
-            glRotatef(rotacion_y, 0, 1, 0)
+            if auto_rotate:
+                rotation_angle += rotation_speed
+                glRotatef(rotation_angle, 1, 1, 0)
+            else:
+                target_rotation_x, target_rotation_y = face_rotations[current_face]
+                lerp_factor = 0.1
 
-        draw_cube()
+                rotacion_x = rotacion_x * (1 - lerp_factor) + target_rotation_x * lerp_factor
+                rotacion_y = rotacion_y * (1 - lerp_factor) + target_rotation_y * lerp_factor
 
-        # Actualizar pantalla
-        pygame.display.flip()
+                glRotatef(rotacion_x, 1, 0, 0)
+                glRotatef(rotacion_y, 0, 1, 0)
+
+            draw_cube()
+
+            pygame.display.flip()
+
         clock.tick(60)
 
-    # Limpiar texturas
+    if audio_channel:
+        audio_channel.stop()
+
+    if pygame.mixer.get_init():
+        pygame.mixer.quit()
+
     if cube_textures:
         glDeleteTextures(cube_textures)
 
