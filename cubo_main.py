@@ -4,6 +4,7 @@ from OpenGL.GL import *
 import os
 
 ## Configuraciones de la ventana
+## NOta ajusta ahi la resolucion si te es necesario
 DISPLAY_WIDTH = 1280
 DISPLAY_HEIGHT = 1000
 
@@ -31,7 +32,7 @@ texture_files = [
 
 cube_textures = []
 
-# Definición del cubo (vértices más simples)
+# Definición del cubo
 vertices = [
     # Cara frontal
     [-1, -1, 1],  # 0
@@ -45,7 +46,7 @@ vertices = [
     [-1, 1, -1]  # 7
 ]
 
-# Caras del cubo (cada cara es un conjunto de 4 vértices)
+# Caras del cubo
 faces = [
     [0, 1, 2, 3],  # Frontal
     [1, 5, 6, 2],  # Derecha
@@ -55,7 +56,9 @@ faces = [
     [4, 5, 1, 0]  # Inferior
 ]
 
-# Colores de cada cara
+# colores de cada cara
+# para debuggin en caso de q esta mamada se rompa
+# se SUPONE que debiria de funcionar cargar si no hay texturas
 face_colors = [
     (1.0, 0.0, 0.0),  # Frontal (Rojo)
     (0.0, 1.0, 0.0),  # Derecha (Verde)
@@ -91,9 +94,9 @@ def cargar_textura(filename):
 
     try:
         image = pygame.image.load(filename).convert_alpha()
-        print(f"Textura cargada exitosamente: {filename}")
+        print(f"Textura cargada: {filename} [OK]")
     except pygame.error as message:
-        print(f"No se pudo cargar la imagen: {filename}")
+        print(f"No se pudo cargar la imagen: {filename} [ERROR]")
         print(f"Error: {message}")
         return None
 
@@ -116,9 +119,7 @@ def cargar_textura(filename):
 
     return textura_id
 
-
 def crear_textura_color(color):
-    #Crear una textura de color sólido
     textura_id = glGenTextures(1)
     r, g, b = [int(c * 255) for c in color]
     pixel_data = bytes([r, g, b, 255])
@@ -166,14 +167,15 @@ def main():
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.display.set_caption("Cubo 3D con Texturas")
 
-    # Configurar proyección
+    # configurar proyección
     setup_projection(DISPLAY_WIDTH, DISPLAY_HEIGHT)
 
     # Configurar OpenGL
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_TEXTURE_2D)
 
-    # Habilitar blending para transparencia
+    # habilitar blending para transparencia
+    # pero pss no funciono pero si lo eliminas se rompe t o d o
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -224,18 +226,14 @@ def main():
                     auto_rotate = not auto_rotate
                     print(f"Rotación automática: {'activada' if auto_rotate else 'desactivada'}")
 
-        # Limpiar pantalla
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # Resetear transformaciones
         glLoadIdentity()
 
         if auto_rotate:
-            # Rotación automática continua
             rotation_angle += 1
             glRotatef(rotation_angle, 1, 1, 0)
         else:
-            # Rotación basada en la cara actual
             target_rotation_x, target_rotation_y = face_rotations[current_face]
             lerp_factor = 0.1
 
@@ -246,12 +244,9 @@ def main():
             glRotatef(rotacion_y, 0, 1, 0)
 
         draw_cube()
-
-        # Actualizar pantalla
         pygame.display.flip()
         clock.tick(60)
 
-    # Limpiar texturas
     if cube_textures:
         glDeleteTextures(cube_textures)
 
