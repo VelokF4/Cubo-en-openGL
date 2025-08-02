@@ -58,7 +58,7 @@ faces = [
 
 # colores de cada cara
 # para debuggin en caso de q esta mamada se rompa
-# se SUPONE que debiria de funcionar cargar si no hay texturas
+# se SUPONE que debiria de cargar si no hay texturas
 face_colors = [
     (1.0, 0.0, 0.0),  # Frontal (Rojo)
     (0.0, 1.0, 0.0),  # Derecha (Verde)
