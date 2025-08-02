@@ -35,6 +35,13 @@ Ejecuta dentro del venv:
 pip install pygame PyopenGL
 ```
 
+Ejecuta con
+```
+python cubo_main.py
+```
+y pss los controles los veras en la terminal donde lo abriste
+
+
 ## Instrucciones de uso
 
 Hay 6 imagenes en dentro de la carpeta [Cara1...6.png] y cada una corresponde a una cara del cubo (dah)
