@@ -10,16 +10,21 @@ lo que vera ahi es un cochinero, pero bueno nada lo hice mientras tenia flojera 
 
 ### Inicializar
 
-- Cuando clones el proyecto metete en la carpeta y arranca el venv
+- Cuando clones el proyecto metete en la carpeta y crea un venv
 
-Si estas en Windows:
 ```
-.\myenv\Scripts\activate
+ python -m venv myenv
 ```
-Si estas en un Unix Like:
-```
-source myenv/bin/activate
-```
+Y lo ejecutas:
+  
+  Si estas en Windows:
+  ```
+  .\myenv\Scripts\activate
+  ```
+  Si estas en un Unix Like:
+  ```
+  source myenv/bin/activate
+  ```
 
 ### Dependencias del Proyecto
 - Pygame
